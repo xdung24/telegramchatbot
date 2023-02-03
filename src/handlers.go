@@ -2,6 +2,7 @@ package src
 
 import (
 	"fmt"
+	"strings"
 
 	tele "gopkg.in/telebot.v3"
 )
@@ -21,6 +22,8 @@ func (h *GPTHandle) AskGPT(c tele.Context) error {
 		return err
 	}
 	answer := resp.Choices[0].Text
+	// trim space and new line characters
+	answer = strings.TrimSpace(strings.TrimSuffix(answer, "\n"))
 	fmt.Println("A:" + answer)
 	return c.Send(answer)
 }
