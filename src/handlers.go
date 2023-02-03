@@ -1,6 +1,8 @@
 package src
 
 import (
+	"fmt"
+
 	tele "gopkg.in/telebot.v3"
 )
 
@@ -12,9 +14,13 @@ type GPTHandle struct{}
 
 func (h *GPTHandle) AskGPT(c tele.Context) error {
 	repo := GPTRepository{}
-	resp, err := repo.GetGPTTextAnswer(c.Text())
+	question := c.Text()
+	fmt.Println("Q:" + question)
+	resp, err := repo.GetGPTTextAnswer(question)
 	if err != nil {
 		return err
 	}
-	return c.Send(resp.Choices[0].Text)
+	answer := resp.Choices[0].Text
+	fmt.Println("A:" + answer)
+	return c.Send(answer)
 }
