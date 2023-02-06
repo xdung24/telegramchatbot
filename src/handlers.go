@@ -31,8 +31,8 @@ func (h *GPTHandle) AskGPT(c tele.Context) error {
 	fmt.Println("A:" + answer)
 	c.Send(answer)
 
-	// Will upload the file from disk and send it to the recipient
-	d, e := gcloud.DetectLanguage(answer)
+	// Will send answer as audio file
+	d, e := gcloud.DetectLanguage(question)
 	if e != nil {
 		fmt.Println(e.Error())
 	}
