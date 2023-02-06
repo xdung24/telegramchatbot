@@ -26,7 +26,7 @@ WORKDIR /build
 RUN go mod download
 RUN go mod verify
 RUN make test
-RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-w -s" -o /build/dist/telegramchatbot
+RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-w -s -X main.version=$(cat VERSION) -X 'main.build=$(date)'" -o /build/dist/telegramchatbot
 
 # release base
 FROM alpine:3 AS release-base

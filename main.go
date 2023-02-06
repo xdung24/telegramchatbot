@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -10,7 +11,19 @@ import (
 	tele "gopkg.in/telebot.v3"
 )
 
+var (
+	version string
+	build   string
+)
+
+func Version(c tele.Context) error {
+	return c.Send("version=" + version + "\n" + "build=" + build)
+}
+
 func main() {
+	fmt.Println("version=", version)
+	fmt.Println("build=", build)
+
 	_ = godotenv.Load()
 	handle := src.GPTHandle{}
 
@@ -26,6 +39,7 @@ func main() {
 	}
 
 	b.Handle("/start", src.OnStart)
+	b.Handle("/version", Version)
 	b.Handle(tele.OnText, handle.AskGPT)
 
 	b.Start()
