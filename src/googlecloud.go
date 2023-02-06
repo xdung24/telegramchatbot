@@ -3,17 +3,18 @@ package src
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 
 	texttospeech "cloud.google.com/go/texttospeech/apiv1"
 	"cloud.google.com/go/texttospeech/apiv1/texttospeechpb"
 	"cloud.google.com/go/translate"
+	"golang.org/x/text/language"
 )
 
 type GoogleCloud struct{}
 
-func (r *GoogleCloud) Prompt2Audio(prompt string, lang string) string {
+func (gc *GoogleCloud) Prompt2Audio(prompt string, lang string) string {
 	// Instantiates a client.
 	ctx := context.Background()
 	client, err := texttospeech.NewClient(ctx)
@@ -48,16 +49,15 @@ func (r *GoogleCloud) Prompt2Audio(prompt string, lang string) string {
 	}
 
 	// The resp's AudioContent is binary.
-	filename := "output.ogg"
-	err = ioutil.WriteFile(filename, resp.AudioContent, 0644)
+	filename, _ := os.CreateTemp(os.TempDir(), "*.ogg")
+	err = os.WriteFile(filename.Name(), resp.AudioContent, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("Audio content written to file: %v\n", filename)
-	return filename
+	return filename.Name()
 }
 
-func (r *GoogleCloud) DetectLanguage(text string) (*translate.Detection, error) {
+func (gc *GoogleCloud) DetectLanguage(text string) (*translate.Detection, error) {
 	ctx := context.Background()
 	client, err := translate.NewClient(ctx)
 	if err != nil {
@@ -66,10 +66,35 @@ func (r *GoogleCloud) DetectLanguage(text string) (*translate.Detection, error) 
 	defer client.Close()
 	lang, err := client.DetectLanguage(ctx, []string{text})
 	if err != nil {
-		return nil, fmt.Errorf("DetectLanguage: %v", err)
+		return nil, fmt.Errorf("detectLanguage: %v", err)
 	}
 	if len(lang) == 0 || len(lang[0]) == 0 {
-		return nil, fmt.Errorf("DetectLanguage return value empty")
+		return nil, fmt.Errorf("detectLanguage return value empty")
 	}
 	return &lang[0][0], nil
+}
+
+func (gc *GoogleCloud) TranslateText(targetLanguage, text string) (string, error) {
+	// text := "The Go Gopher is cute"
+	ctx := context.Background()
+
+	lang, err := language.Parse(targetLanguage)
+	if err != nil {
+		return "", fmt.Errorf("language.Parse: %v", err)
+	}
+
+	client, err := translate.NewClient(ctx)
+	if err != nil {
+		return "", err
+	}
+	defer client.Close()
+
+	resp, err := client.Translate(ctx, []string{text}, lang, nil)
+	if err != nil {
+		return "", fmt.Errorf("translate: %v", err)
+	}
+	if len(resp) == 0 {
+		return "", fmt.Errorf("translate returned empty response to text: %s", text)
+	}
+	return resp[0].Text, nil
 }

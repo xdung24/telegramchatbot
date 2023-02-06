@@ -2,6 +2,7 @@ package src
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/gosimple/slug"
@@ -18,32 +19,63 @@ func (h *GPTHandle) AskGPT(c tele.Context) error {
 	gpt := GPTRepository{}
 	gcloud := GoogleCloud{}
 
+	// print input question
 	question := c.Text()
-	fmt.Println("Q:" + question)
-	resp, err := gpt.GetGPTTextAnswer(question)
-	if err != nil {
-		return err
-	}
-	answer := resp.Choices[0].Text
-	// trim space and new line characters
-	answer = strings.TrimSpace(strings.TrimSuffix(answer, "\n"))
-	fmt.Println("A:" + answer)
+	fmt.Println("Q1:" + question)
 
-	// Will send awnser as message
-	// c.Send(answer)
-
-	// Will send answer as audio file
+	// detect question language
 	d, e := gcloud.DetectLanguage(question)
 	if e != nil {
 		fmt.Println(e.Error())
 	}
-	lang := "vi"
+	questionlang := ""
 	if d != nil && d.Language.String() != "und" {
 		fmt.Println("lang:" + d.Language.String())
-		lang = d.Language.String()
+		questionlang = d.Language.String()
 	}
 
-	file := gcloud.Prompt2Audio(answer, lang)
+	// not english, translate question to english
+	if questionlang != "en" {
+		result, err := gcloud.TranslateText("en", question)
+		if err != nil {
+			fmt.Println("error:" + err.Error())
+		}
+		question = result
+		fmt.Println("Q2:" + question)
+	}
+
+	// get chat gpt completion (answer)
+	resp, err := gpt.GetGPTTextAnswer(question)
+	if err != nil {
+		return c.Send(err.Error())
+	}
+	if len(resp.Choices) == 0 {
+		return c.Send("No answer")
+	}
+
+	answer := resp.Choices[0].Text
+	// trim space and new line characters
+	answer = strings.TrimSpace(answer)
+	answer = strings.ReplaceAll(answer, "\n", ".\n")
+	answer = strings.ReplaceAll(answer, "..\n", ".\n")
+
+	fmt.Println("A1:" + answer)
+
+	// translate answer to original language
+	if questionlang != "en" {
+		result, err := gcloud.TranslateText(questionlang, answer)
+		if err != nil {
+			fmt.Println("error:" + err.Error())
+		}
+		answer = result
+		fmt.Println("A2:" + answer)
+	}
+
+	// send answer as message
+	// c.Send(answer)
+
+	// send answer as voice message
+	file := gcloud.Prompt2Audio(answer, questionlang)
 	filename := slug.Make(question) + ".ogg"
 
 	audio := &tele.Audio{
@@ -52,5 +84,6 @@ func (h *GPTHandle) AskGPT(c tele.Context) error {
 		Title:    question,
 		Caption:  answer,
 	}
+	defer os.Remove(file)
 	return c.Send(audio)
 }
