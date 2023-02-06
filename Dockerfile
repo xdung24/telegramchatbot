@@ -41,6 +41,6 @@ ENV ZONEINFO=/zoneinfo.zip
 FROM release-base AS release
 COPY --from=builder /build/dist/telegramchatbot /usr/local/bin/
 RUN chmod a+rx /usr/local/bin/telegramchatbot
-WORKDIR /
+WORKDIR /tmp/
 USER ft:ft
 ENTRYPOINT [ "telegramchatbot" ]
