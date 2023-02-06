@@ -21,7 +21,7 @@ type Config struct {
 var DefaultConfig = &Config{
 	GPTModel:          "text-davinci-003",
 	GPTTemperature:    0.5,
-	GPTMaxTokens:      256,
+	GPTMaxTokens:      1000,
 	GPTCompletionsUrl: "https://api.openai.com/v1/completions",
 }
 

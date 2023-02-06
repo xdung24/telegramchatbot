@@ -27,10 +27,10 @@ func (h *GPTHandle) AskGPT(c tele.Context) error {
 	answer := resp.Choices[0].Text
 	// trim space and new line characters
 	answer = strings.TrimSpace(strings.TrimSuffix(answer, "\n"))
+	fmt.Println("A:" + answer)
 
 	// Will send awnser as message
-	fmt.Println("A:" + answer)
-	c.Send(answer)
+	// c.Send(answer)
 
 	// Will send answer as audio file
 	d, e := gcloud.DetectLanguage(question)
