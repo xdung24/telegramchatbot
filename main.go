@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/johnazedo/gpt-bot/src"
-	"github.com/joho/godotenv"
-	tele "gopkg.in/telebot.v3"
 	"log"
 	"os"
 	"time"
+
+	"github.com/johnazedo/gpt-bot/src"
+	"github.com/joho/godotenv"
+	tele "gopkg.in/telebot.v3"
 )
 
 func main() {

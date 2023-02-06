@@ -14,16 +14,35 @@ func OnStart(c tele.Context) error {
 type GPTHandle struct{}
 
 func (h *GPTHandle) AskGPT(c tele.Context) error {
-	repo := GPTRepository{}
+	gpt := GPTRepository{}
+	gcloud := GoogleCloud{}
+
 	question := c.Text()
 	fmt.Println("Q:" + question)
-	resp, err := repo.GetGPTTextAnswer(question)
+	resp, err := gpt.GetGPTTextAnswer(question)
 	if err != nil {
 		return err
 	}
 	answer := resp.Choices[0].Text
 	// trim space and new line characters
 	answer = strings.TrimSpace(strings.TrimSuffix(answer, "\n"))
+
+	// Will send awnser as message
 	fmt.Println("A:" + answer)
-	return c.Send(answer)
+	c.Send(answer)
+
+	// Will upload the file from disk and send it to the recipient
+	d, e := gcloud.DetectLanguage(answer)
+	if e != nil {
+		fmt.Println(e.Error())
+	}
+	lang := "vi"
+	if d != nil && d.Language.String() != "und" {
+		fmt.Println("lang:" + d.Language.String())
+		lang = d.Language.String()
+	}
+
+	file := gcloud.Prompt2Audio(answer, lang)
+	audio := &tele.Audio{File: tele.FromDisk(file)}
+	return c.Send(audio)
 }
