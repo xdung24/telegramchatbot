@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gosimple/slug"
 	tele "gopkg.in/telebot.v3"
 )
 
@@ -43,6 +44,13 @@ func (h *GPTHandle) AskGPT(c tele.Context) error {
 	}
 
 	file := gcloud.Prompt2Audio(answer, lang)
-	audio := &tele.Audio{File: tele.FromDisk(file)}
+	filename := slug.Make(question) + ".ogg"
+
+	audio := &tele.Audio{
+		File:     tele.FromDisk(file),
+		FileName: filename,
+		Title:    question,
+		Caption:  answer,
+	}
 	return c.Send(audio)
 }

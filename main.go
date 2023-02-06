@@ -25,7 +25,7 @@ func main() {
 	fmt.Println("build=", build)
 
 	_ = godotenv.Load()
-	handle := src.GPTHandle{}
+	gpt := src.GPTHandle{}
 
 	pref := tele.Settings{
 		Token:  os.Getenv("TELEGRAM_KEY"),
@@ -40,7 +40,7 @@ func main() {
 
 	b.Handle("/start", src.OnStart)
 	b.Handle("/version", Version)
-	b.Handle(tele.OnText, handle.AskGPT)
+	b.Handle(tele.OnText, gpt.AskGPT)
 
 	b.Start()
 }
