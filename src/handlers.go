@@ -54,8 +54,10 @@ func (h *GPTHandle) AskGPT(c tele.Context) error {
 	}
 
 	answer := resp.Choices[0].Text
+
 	// trim space and new line characters
 	answer = strings.TrimSpace(answer)
+	answer = strings.ReplaceAll(answer, "\n\n", "\n")
 	answer = strings.ReplaceAll(answer, "\n", ".\n")
 	answer = strings.ReplaceAll(answer, "..\n", ".\n")
 

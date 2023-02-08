@@ -75,7 +75,6 @@ func (gc *GoogleCloud) DetectLanguage(text string) (*translate.Detection, error)
 }
 
 func (gc *GoogleCloud) TranslateText(targetLanguage, text string) (string, error) {
-	// text := "The Go Gopher is cute"
 	ctx := context.Background()
 
 	lang, err := language.Parse(targetLanguage)
