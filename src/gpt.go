@@ -36,9 +36,6 @@ type TextResponseChoices struct {
 
 type GPTRepository struct{}
 
-const OnStartMessage = "Ask me something."
-const MessagePrefix = "ChatGPT"
-
 var DefaultConfig = &Config{
 	GPTModel:          "text-davinci-003",
 	GPTTemperature:    0.7,

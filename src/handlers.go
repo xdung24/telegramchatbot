@@ -9,6 +9,8 @@ import (
 	tele "gopkg.in/telebot.v3"
 )
 
+const OnStartMessage = "Ask me something. Please prefer English, but other languages are also supported."
+
 func OnStart(c tele.Context) error {
 	return c.Send(OnStartMessage)
 }
