@@ -1,5 +1,5 @@
 # builder base
-FROM golang:1.19-alpine as builder-base
+FROM golang:1.20-alpine as builder-base
 RUN apk update
 # install dependency here
 RUN apk add build-base ca-certificates && update-ca-certificates tzdata

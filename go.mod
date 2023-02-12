@@ -1,6 +1,6 @@
-module github.com/johnazedo/gpt-bot
+module github.com/xdung24/gpt-bot
 
-go 1.19
+go 1.20
 
 require gopkg.in/telebot.v3 v3.1.2
 

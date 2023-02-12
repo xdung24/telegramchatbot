@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/johnazedo/gpt-bot/src"
 	"github.com/joho/godotenv"
+	"github.com/xdung24/gpt-bot/src"
 	tele "gopkg.in/telebot.v3"
 )
 
