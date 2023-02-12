@@ -32,15 +32,15 @@ func main() {
 		Poller: &tele.LongPoller{Timeout: 10 * time.Second},
 	}
 
-	b, err := tele.NewBot(pref)
+	bot, err := tele.NewBot(pref)
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 
-	b.Handle("/start", src.OnStart)
-	b.Handle("/version", Version)
-	b.Handle(tele.OnText, gpt.AskGPT)
+	bot.Handle("/start", src.OnStart)
+	bot.Handle("/version", Version)
+	bot.Handle(tele.OnText, gpt.AskGPT)
 
-	b.Start()
+	bot.Start()
 }

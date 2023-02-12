@@ -3,7 +3,6 @@ package src
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 
 	texttospeech "cloud.google.com/go/texttospeech/apiv1"
@@ -14,15 +13,16 @@ import (
 
 type GoogleCloud struct{}
 
-func (gc *GoogleCloud) Prompt2Audio(prompt string, lang string) string {
+func (gc *GoogleCloud) Prompt2Audio(prompt string, lang string) (string, error) {
 	// Instantiates a client.
 	ctx := context.Background()
 	client, err := texttospeech.NewClient(ctx)
+	defer client.Close()
 
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+		return "", err
 	}
-	defer client.Close()
 
 	// Perform the text-to-speech request on the text input with the selected
 	// voice parameters and audio file type.
@@ -45,16 +45,18 @@ func (gc *GoogleCloud) Prompt2Audio(prompt string, lang string) string {
 
 	resp, err := client.SynthesizeSpeech(ctx, &req)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+		return "", err
 	}
 
 	// The resp's AudioContent is binary.
 	filename, _ := os.CreateTemp(os.TempDir(), "*.ogg")
 	err = os.WriteFile(filename.Name(), resp.AudioContent, 0644)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+		return "", err
 	}
-	return filename.Name()
+	return filename.Name(), nil
 }
 
 func (gc *GoogleCloud) DetectLanguage(text string) (*translate.Detection, error) {

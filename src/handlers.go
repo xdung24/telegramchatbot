@@ -73,11 +73,12 @@ func (h *GPTHandle) AskGPT(c tele.Context) error {
 		fmt.Println("A2:" + answer)
 	}
 
-	// send answer as message
-	// c.Send(answer)
+	file, err := gcloud.Prompt2Audio(answer, questionlang)
+	if err != nil {
+		// send answer as message
+		return c.Send(answer)
+	}
 
-	// send answer as voice message
-	file := gcloud.Prompt2Audio(answer, questionlang)
 	filename := slug.Make(question) + ".ogg"
 
 	audio := &tele.Audio{
@@ -87,5 +88,6 @@ func (h *GPTHandle) AskGPT(c tele.Context) error {
 		Caption:  answer,
 	}
 	defer os.Remove(file)
+	// send answer as voice message
 	return c.Send(audio)
 }
