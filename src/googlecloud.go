@@ -11,7 +11,19 @@ import (
 	"golang.org/x/text/language"
 )
 
-type GoogleCloud struct{}
+type GoogleCloud struct {
+	Gender string
+}
+
+func ssmlFromString(genderText string) texttospeechpb.SsmlVoiceGender {
+	if genderText == "FEMALE" || genderText == "2" {
+		return texttospeechpb.SsmlVoiceGender_FEMALE
+	}
+	if genderText == "MALE" || genderText == "1" {
+		return texttospeechpb.SsmlVoiceGender_MALE
+	}
+	panic("invalid genderText")
+}
 
 func (gc *GoogleCloud) Prompt2Audio(prompt string, lang string) (string, error) {
 	// Instantiates a client.
@@ -40,7 +52,7 @@ func (gc *GoogleCloud) Prompt2Audio(prompt string, lang string) (string, error) 
 		// voice gender ("neutral").
 		Voice: &texttospeechpb.VoiceSelectionParams{
 			LanguageCode: lang,
-			SsmlGender:   texttospeechpb.SsmlVoiceGender_FEMALE,
+			SsmlGender:   ssmlFromString(gc.Gender),
 		},
 		// Select the type of audio file you want returned.
 		AudioConfig: &texttospeechpb.AudioConfig{

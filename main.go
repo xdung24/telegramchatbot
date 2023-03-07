@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -40,13 +41,19 @@ func main() {
 	}
 
 	// Init Google Cloud
-	gCloud := src.GoogleCloud{}
+	gCloud := src.GoogleCloud{
+		Gender: os.Getenv("GENDER"),
+	}
 
-	// Init Handler with Google Cloud and GPT Repository
+	// Init Handler with Google Cloud and GPT Repository and Paragraph Length
+	paragraphLength, err := strconv.Atoi(os.Getenv("PARAGRAPH_LENGTH"))
+	if err != nil {
+		panic(err)
+	}
 	handler := Handler{
 		GPTRepository:   gptRepo,
 		GoogleCloud:     gCloud,
-		ParagraphLength: 2000,
+		ParagraphLength: paragraphLength,
 	}
 
 	// Init Telegram Bot setting

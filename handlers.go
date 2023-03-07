@@ -73,6 +73,8 @@ func (h *Handler) AskGPT(c tele.Context) error {
 	if len(answer) > h.ParagraphLength {
 		answers := src.SplitParagraphs(answer, h.ParagraphLength)
 		answerList = append(answerList, answers...)
+	} else {
+		answerList = append(answerList, answer)
 	}
 
 	// translate answer to original language
