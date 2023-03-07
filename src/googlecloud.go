@@ -17,6 +17,11 @@ func (gc *GoogleCloud) Prompt2Audio(prompt string, lang string) (string, error) 
 	// Instantiates a client.
 	ctx := context.Background()
 	client, err := texttospeech.NewClient(ctx)
+	if err != nil {
+		fmt.Println(err)
+		return "", err
+	}
+
 	defer client.Close()
 
 	if err != nil {

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"os"
 )
 
 type Config struct {
@@ -34,16 +33,36 @@ type TextResponseChoices struct {
 	LogProbs int    `json:"logprobs"`
 }
 
-type GPTRepository struct{}
-
-var DefaultConfig = &Config{
-	GPTModel:          "text-davinci-003",
-	GPTTemperature:    0.7,
-	GPTMaxTokens:      1000,
-	GPTCompletionsUrl: "https://api.openai.com/v1/completions",
+type GPTRepository struct {
+	OpenApiKey string
+	Config     Config
 }
 
-func Call(method, url string, body any) (*http.Response, error) {
+const gptCompletionsUrl = "https://api.openai.com/v1/completions"
+
+func (r *GPTRepository) GetGPTTextAnswer(prompt string) (*TextResponse, error) {
+	textRequest := TextRequest{
+		Model:       r.Config.GPTModel,
+		Prompt:      prompt,
+		Temperature: r.Config.GPTTemperature,
+		MaxTokens:   r.Config.GPTMaxTokens,
+	}
+
+	res, err := call("POST", gptCompletionsUrl, textRequest, r.OpenApiKey)
+	if err != nil {
+		return nil, err
+	}
+
+	textResponse := TextResponse{}
+	err = readResponse(res, &textResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return &textResponse, nil
+}
+
+func call(method string, url string, body any, openApiKey string) (*http.Response, error) {
 	postBody, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
@@ -55,7 +74,7 @@ func Call(method, url string, body any) (*http.Response, error) {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+os.Getenv("OPENAI_KEY"))
+	req.Header.Set("Authorization", "Bearer "+openApiKey)
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -65,7 +84,7 @@ func Call(method, url string, body any) (*http.Response, error) {
 	return res, nil
 }
 
-func ReadResponse(res *http.Response, model any) error {
+func readResponse(res *http.Response, model any) error {
 	resBody, err := io.ReadAll(res.Body)
 	if err != nil {
 		return err
@@ -77,26 +96,4 @@ func ReadResponse(res *http.Response, model any) error {
 	}
 
 	return nil
-}
-
-func (r *GPTRepository) GetGPTTextAnswer(prompt string) (*TextResponse, error) {
-	textRequest := TextRequest{
-		Model:       DefaultConfig.GPTModel,
-		Prompt:      prompt,
-		Temperature: DefaultConfig.GPTTemperature,
-		MaxTokens:   DefaultConfig.GPTMaxTokens,
-	}
-
-	res, err := Call("POST", DefaultConfig.GPTCompletionsUrl, textRequest)
-	if err != nil {
-		return nil, err
-	}
-
-	textResponse := TextResponse{}
-	err = ReadResponse(res, &textResponse)
-	if err != nil {
-		return nil, err
-	}
-
-	return &textResponse, nil
 }

@@ -21,26 +21,52 @@ func Version(c tele.Context) error {
 }
 
 func main() {
+	// Print version and build
 	fmt.Println("version=", version)
 	fmt.Println("build=", build)
 
+	// Load environment variables
 	_ = godotenv.Load()
-	gpt := src.GPTHandle{}
 
-	pref := tele.Settings{
+	// Init GPT Repository
+	var config = src.Config{
+		GPTModel:       "text-davinci-003",
+		GPTTemperature: 0.7,
+		GPTMaxTokens:   4000,
+	}
+	gptRepo := src.GPTRepository{
+		OpenApiKey: os.Getenv("OPENAI_KEY"),
+		Config:     config,
+	}
+
+	// Init Google Cloud
+	gCloud := src.GoogleCloud{}
+
+	// Init Handler with Google Cloud and GPT Repository
+	handler := Handler{
+		GPTRepository:   gptRepo,
+		GoogleCloud:     gCloud,
+		ParagraphLength: 2000,
+	}
+
+	// Init Telegram Bot setting
+	settings := tele.Settings{
 		Token:  os.Getenv("TELEGRAM_KEY"),
 		Poller: &tele.LongPoller{Timeout: 10 * time.Second},
 	}
 
-	bot, err := tele.NewBot(pref)
+	// Create Telegram Bot instance
+	bot, err := tele.NewBot(settings)
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 
-	bot.Handle("/start", src.OnStart)
+	// Handle Telegram Bot commands
 	bot.Handle("/version", Version)
-	bot.Handle(tele.OnText, gpt.AskGPT)
+	bot.Handle("/start", handler.OnStart)
+	bot.Handle(tele.OnText, handler.AskGPT)
 
+	// Start Telegram Bot
 	bot.Start()
 }
