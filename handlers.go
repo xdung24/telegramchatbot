@@ -110,7 +110,7 @@ func (h *Handler) AskGPT(c tele.Context) error {
 			File:     tele.FromDisk(file),
 			FileName: filename,
 			Title:    question,
-			Caption:  answer,
+			Caption:  unescapedAnswer,
 		}
 		defer os.Remove(file)
 		// send answer as voice message
