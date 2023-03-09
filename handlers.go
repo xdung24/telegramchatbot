@@ -24,6 +24,17 @@ func (h *Handler) OnStart(c tele.Context) error {
 }
 
 func (h *Handler) AskGPT(c tele.Context) error {
+	// skip message from bot
+	if c.Sender().IsBot {
+		fmt.Println("---skip message from bot---")
+		fmt.Printf("id:%d", c.Sender().ID)
+		fmt.Printf("username:%s", c.Sender().Username)
+		fmt.Printf("message:%s", c.Text())
+		return nil
+	}
+
+	// get the user id of the sender
+	fmt.Printf("sender (%d): %s\n", c.Sender().ID, c.Sender().Username)
 
 	// print input question
 	question := c.Text()
@@ -54,11 +65,12 @@ func (h *Handler) AskGPT(c tele.Context) error {
 	resp, err := h.GPTRepository.GetGPTTextAnswer(question)
 	if err != nil {
 		sendErr := c.Send(err.Error())
-		logSendErr(sendErr)
+		logSendErr(err)
 		return sendErr
 	}
 	if len(resp.Choices) == 0 {
 		sendErr := c.Send("No answer")
+		fmt.Println("No answer")
 		logSendErr(sendErr)
 		return sendErr
 	}
@@ -81,6 +93,8 @@ func (h *Handler) AskGPT(c tele.Context) error {
 	} else {
 		answerList = append(answerList, answer)
 	}
+
+	fmt.Printf("Number of paragraph: %d \n", len(answerList))
 
 	// translate answer to original language
 	for i, answer := range answerList {
