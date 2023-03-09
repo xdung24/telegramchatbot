@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html"
 	"os"
 	"strings"
 
@@ -52,10 +53,14 @@ func (h *Handler) AskGPT(c tele.Context) error {
 	// get chat gpt completion (answer)
 	resp, err := h.GPTRepository.GetGPTTextAnswer(question)
 	if err != nil {
-		return c.Send(err.Error())
+		sendErr := c.Send(err.Error())
+		logSendErr(sendErr)
+		return sendErr
 	}
 	if len(resp.Choices) == 0 {
-		return c.Send("No answer")
+		sendErr := c.Send("No answer")
+		logSendErr(sendErr)
+		return sendErr
 	}
 
 	answer := resp.Choices[0].Text
@@ -78,21 +83,25 @@ func (h *Handler) AskGPT(c tele.Context) error {
 	}
 
 	// translate answer to original language
-	for _, answer := range answerList {
+	for i, answer := range answerList {
 
+		var unescapedAnswer string
 		if questionlang != "en" {
 			result, err := h.GoogleCloud.TranslateText(questionlang, answer)
 			if err != nil {
 				fmt.Println("error:" + err.Error())
 			}
-			answer = result
-			fmt.Println("A2:" + answer)
+			unescapedAnswer = html.UnescapeString(result)
+			fmt.Printf("A2(%d): %s\n", i, unescapedAnswer)
+		} else {
+			unescapedAnswer = html.UnescapeString(answer)
 		}
 
-		file, err := h.GoogleCloud.Prompt2Audio(answer, questionlang)
+		file, err := h.GoogleCloud.Prompt2Audio(unescapedAnswer, questionlang)
 		if err != nil {
 			// send answer as message
-			return c.Send(answer)
+			sendErr := c.Send(unescapedAnswer)
+			logSendErr(sendErr)
 		}
 
 		filename := slug.Make(question) + ".ogg"
@@ -105,7 +114,16 @@ func (h *Handler) AskGPT(c tele.Context) error {
 		}
 		defer os.Remove(file)
 		// send answer as voice message
-		c.Send(audio)
+		sendErr := c.Send(audio)
+		logSendErr(sendErr)
 	}
 	return nil
+}
+
+func logSendErr(err error) {
+	if err != nil {
+		fmt.Println("error when sending message" + err.Error())
+	} else {
+		fmt.Println("send message successfully")
+	}
 }
